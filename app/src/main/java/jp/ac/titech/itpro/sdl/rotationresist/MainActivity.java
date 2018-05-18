@@ -11,11 +11,14 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private final static String TAG = "MainActivity";
+    private final static float NS2S = 1.0f / 1000000000.0f;
 
     private RotationView rotationView;
 
     private SensorManager sensorManager;
     private Sensor gyroscope;
+    private long timestamp = 0;
+    private double angle = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +56,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        float omegaZ = event.values[2];  // z-axis angular velocity (radian / sec)
-        // TODO: calculate right direction that cancels the rotation
-        rotationView.setDirection(omegaZ);
+        if (timestamp != 0) {
+            float omegaZ = event.values[2];  // z-axis angular velocity (radian / sec)
+            final float dt = (event.timestamp - timestamp) * NS2S;
+            angle += omegaZ * dt;
+            rotationView.setDirection(angle);
+        }
+        timestamp = event.timestamp;
     }
 
     @Override
